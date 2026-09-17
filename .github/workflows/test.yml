@@ -43,10 +43,12 @@ jobs:
           go run ./cmd/xqmob mcp --help >/dev/null
       - name: End-to-end standard profile
         run: |
+          trap 'printf "::error::Command failed (line %s): %s\n" "$LINENO" "$BASH_COMMAND"' ERR
           go run ./cmd/xqmob eventize testdata/sample.csv --source ci-synthetic --out "$RUNNER_TEMP/xqmob-standard" --trace-id a | tee "$RUNNER_TEMP/xqmob-standard.out"
           grep -q '^  details: xqmob inspect --diagnostics ' "$RUNNER_TEMP/xqmob-standard.out"
           ! grep -q 'temporal_diagnostics:' "$RUNNER_TEMP/xqmob-standard.out"
-          go run ./cmd/xqmob eventize testdata/sample.csv --source ci-synthetic --out "$RUNNER_TEMP/xqmob-standard-verbose" --verbose | grep -q 'temporal_diagnostics:'
+          go run ./cmd/xqmob eventize testdata/sample.csv --source ci-synthetic --out "$RUNNER_TEMP/xqmob-standard-verbose" --verbose > "$RUNNER_TEMP/xqmob-standard-verbose.out"
+          grep -q 'temporal_diagnostics:' "$RUNNER_TEMP/xqmob-standard-verbose.out"
           go run ./cmd/xqmob validate "$RUNNER_TEMP/xqmob-standard/canonical/events.jsonl"
           test -s "$RUNNER_TEMP/xqmob-standard/analysis/observations.parquet"
           test -s "$RUNNER_TEMP/xqmob-standard/analysis/events.parquet"
@@ -84,11 +86,15 @@ jobs:
           grep -q '"traces"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
           test -s "$(find "$RUNNER_TEMP/xqmob-standard/diagnostics/traces" -name '*.csv' | head -n 1)"
           head -n 1 "$RUNNER_TEMP/xqmob-standard/rejects.csv" | grep -q 'reason_code'
-          go run ./cmd/xqmob inspect "$RUNNER_TEMP/xqmob-standard" | grep -q 'analysis_contract=xqmob-analysis-v0.2'
-          ! go run ./cmd/xqmob inspect "$RUNNER_TEMP/xqmob-standard" | grep -q 'temporal_diagnostics:'
-          go run ./cmd/xqmob inspect --diagnostics "$RUNNER_TEMP/xqmob-standard" | grep -q 'temporal_diagnostics:'
-          go run ./cmd/xqmob inspect --entity a "$RUNNER_TEMP/xqmob-standard" | grep -q 'entity=a'
-          go run ./cmd/xqmob inspect --json --entity a "$RUNNER_TEMP/xqmob-standard" | grep -q '"entity_id": "a"'
+          go run ./cmd/xqmob inspect "$RUNNER_TEMP/xqmob-standard" > "$RUNNER_TEMP/inspect.out"
+          grep -q 'analysis_contract=xqmob-analysis-v0.2' "$RUNNER_TEMP/inspect.out"
+          ! grep -q 'temporal_diagnostics:' "$RUNNER_TEMP/inspect.out"
+          go run ./cmd/xqmob inspect --diagnostics "$RUNNER_TEMP/xqmob-standard" > "$RUNNER_TEMP/inspect-diagnostics.out"
+          grep -q 'temporal_diagnostics:' "$RUNNER_TEMP/inspect-diagnostics.out"
+          go run ./cmd/xqmob inspect --entity a "$RUNNER_TEMP/xqmob-standard" > "$RUNNER_TEMP/inspect-entity.out"
+          grep -q 'entity=a' "$RUNNER_TEMP/inspect-entity.out"
+          go run ./cmd/xqmob inspect --json --entity a "$RUNNER_TEMP/xqmob-standard" > "$RUNNER_TEMP/inspect-entity.json"
+          python3 -c 'import json, sys; entity = json.load(open(sys.argv[1]))["entity"]; assert entity["entity_id"] == "a", entity' "$RUNNER_TEMP/inspect-entity.json"
           go run ./cmd/xqmob eventize testdata/sample.csv --source ci-h3 --out "$RUNNER_TEMP/xqmob-h3-r9" --h3-resolution 9
           grep -q '"h3_resolution": 9' "$RUNNER_TEMP/xqmob-h3-r9/manifest.json"
       - name: MCP domain analyst integration

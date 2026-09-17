@@ -234,56 +234,56 @@ type TransitionRow struct {
 }
 
 type EntityRow struct {
-	EntityID                          string   `parquet:"entity_id"`
-	Subject                           string   `parquet:"subject,dict"`
-	FirstSeen                         int64    `parquet:"first_seen,timestamp(millisecond)"`
-	LastSeen                          int64    `parquet:"last_seen,timestamp(millisecond)"`
-	CoverageS                         float64  `parquet:"coverage_s"`
-	ObservationCount                  int64    `parquet:"observation_count"`
-	TrackCount                        int64    `parquet:"track_count"`
-	SegmentCount                      int64    `parquet:"segment_count"`
-	PresenceCount                     int64    `parquet:"presence_count"`
-	TransitionCount                   int64    `parquet:"transition_count"`
-	StayCount                         int64    `parquet:"stay_count"`
-	DwellCount                        int64    `parquet:"dwell_count"`
-	GapCount                          int64    `parquet:"gap_count"`
-	DiscontinuityCount                int64    `parquet:"discontinuity_count"`
-	TotalObservedPathM                float64  `parquet:"total_observed_path_m"`
-	TotalPresenceS                    float64  `parquet:"total_presence_s"`
-	TotalDwellS                       float64  `parquet:"total_dwell_s"`
-	UniquePresenceLocations           int64    `parquet:"unique_presence_locations"`
-	UniqueGeohashCells                int64    `parquet:"unique_geohash_cells"`
-	UniqueH3Cells                     int64    `parquet:"unique_h3_cells"`
-	MedianHAM                         *float64 `parquet:"median_ha_m,optional"`
-	ObservationsWithHA                int64    `parquet:"observations_with_ha"`
-	ObservationsWithoutHA             int64    `parquet:"observations_without_ha"`
-	HACoveragePct                     float64  `parquet:"ha_coverage_pct"`
-	HAClass                           string   `parquet:"ha_class,dict"`
-	StartLat                          float64  `parquet:"start_lat"`
-	StartLon                          float64  `parquet:"start_lon"`
-	EndLat                            float64  `parquet:"end_lat"`
-	EndLon                            float64  `parquet:"end_lon"`
-	StartH3Cell                       string   `parquet:"start_h3_cell,dict"`
-	EndH3Cell                         string   `parquet:"end_h3_cell,dict"`
-	SameTimestampCollapsed            int64    `parquet:"same_timestamp_collapsed"`
-	PresenceEndGap                    int64    `parquet:"presence_end_gap"`
-	PresenceEndDiscontinuity          int64    `parquet:"presence_end_discontinuity"`
-	PresenceEndMovement               int64    `parquet:"presence_end_confirmed_movement"`
-	DepartureCandidateSequences       int64    `parquet:"departure_candidate_sequences"`
-	DepartureCandidateWindowExpired   int64    `parquet:"departure_candidate_window_expired"`
-	DepartureCandidatesCancelledGap   int64    `parquet:"departure_candidates_cancelled_gap"`
-	DepartureCandidatesCancelledDisc  int64    `parquet:"departure_candidates_cancelled_discontinuity"`
-	DepartureCandidatesCancelledEOF   int64    `parquet:"departure_candidates_cancelled_eof"`
-	DepartureCandidateUnaccounted     int64    `parquet:"departure_candidate_unaccounted"`
-	EnterSuppressedNoPending          int64    `parquet:"enter_suppressed_no_pending_transition"`
-	DeparturesConfirmed               int64    `parquet:"departures_confirmed"`
-	PendingTransitionsStarted         int64    `parquet:"pending_transitions_started"`
-	TransitionsConfirmed              int64    `parquet:"transitions_confirmed"`
-	TransitionsCancelledGap           int64    `parquet:"transitions_cancelled_gap"`
-	TransitionsCancelledDiscontinuity int64    `parquet:"transitions_cancelled_discontinuity"`
-	TransitionsUnresolvedEOF          int64    `parquet:"transitions_unresolved_eof"`
-	PendingTransitionUnaccounted      int64    `parquet:"pending_transition_unaccounted"`
-	EventizerVersion                  string   `parquet:"eventizer_version,dict"`
+	EntityID                          string   `parquet:"entity_id" json:"entity_id"`
+	Subject                           string   `parquet:"subject,dict" json:"subject"`
+	FirstSeen                         int64    `parquet:"first_seen,timestamp(millisecond)" json:"first_seen"`
+	LastSeen                          int64    `parquet:"last_seen,timestamp(millisecond)" json:"last_seen"`
+	CoverageS                         float64  `parquet:"coverage_s" json:"coverage_s"`
+	ObservationCount                  int64    `parquet:"observation_count" json:"observation_count"`
+	TrackCount                        int64    `parquet:"track_count" json:"track_count"`
+	SegmentCount                      int64    `parquet:"segment_count" json:"segment_count"`
+	PresenceCount                     int64    `parquet:"presence_count" json:"presence_count"`
+	TransitionCount                   int64    `parquet:"transition_count" json:"transition_count"`
+	StayCount                         int64    `parquet:"stay_count" json:"stay_count"`
+	DwellCount                        int64    `parquet:"dwell_count" json:"dwell_count"`
+	GapCount                          int64    `parquet:"gap_count" json:"gap_count"`
+	DiscontinuityCount                int64    `parquet:"discontinuity_count" json:"discontinuity_count"`
+	TotalObservedPathM                float64  `parquet:"total_observed_path_m" json:"total_observed_path_m"`
+	TotalPresenceS                    float64  `parquet:"total_presence_s" json:"total_presence_s"`
+	TotalDwellS                       float64  `parquet:"total_dwell_s" json:"total_dwell_s"`
+	UniquePresenceLocations           int64    `parquet:"unique_presence_locations" json:"unique_presence_locations"`
+	UniqueGeohashCells                int64    `parquet:"unique_geohash_cells" json:"unique_geohash_cells"`
+	UniqueH3Cells                     int64    `parquet:"unique_h3_cells" json:"unique_h3_cells"`
+	MedianHAM                         *float64 `parquet:"median_ha_m,optional" json:"median_ha_m"`
+	ObservationsWithHA                int64    `parquet:"observations_with_ha" json:"observations_with_ha"`
+	ObservationsWithoutHA             int64    `parquet:"observations_without_ha" json:"observations_without_ha"`
+	HACoveragePct                     float64  `parquet:"ha_coverage_pct" json:"ha_coverage_pct"`
+	HAClass                           string   `parquet:"ha_class,dict" json:"ha_class"`
+	StartLat                          float64  `parquet:"start_lat" json:"start_lat"`
+	StartLon                          float64  `parquet:"start_lon" json:"start_lon"`
+	EndLat                            float64  `parquet:"end_lat" json:"end_lat"`
+	EndLon                            float64  `parquet:"end_lon" json:"end_lon"`
+	StartH3Cell                       string   `parquet:"start_h3_cell,dict" json:"start_h3_cell"`
+	EndH3Cell                         string   `parquet:"end_h3_cell,dict" json:"end_h3_cell"`
+	SameTimestampCollapsed            int64    `parquet:"same_timestamp_collapsed" json:"same_timestamp_collapsed"`
+	PresenceEndGap                    int64    `parquet:"presence_end_gap" json:"presence_end_gap"`
+	PresenceEndDiscontinuity          int64    `parquet:"presence_end_discontinuity" json:"presence_end_discontinuity"`
+	PresenceEndMovement               int64    `parquet:"presence_end_confirmed_movement" json:"presence_end_confirmed_movement"`
+	DepartureCandidateSequences       int64    `parquet:"departure_candidate_sequences" json:"departure_candidate_sequences"`
+	DepartureCandidateWindowExpired   int64    `parquet:"departure_candidate_window_expired" json:"departure_candidate_window_expired"`
+	DepartureCandidatesCancelledGap   int64    `parquet:"departure_candidates_cancelled_gap" json:"departure_candidates_cancelled_gap"`
+	DepartureCandidatesCancelledDisc  int64    `parquet:"departure_candidates_cancelled_discontinuity" json:"departure_candidates_cancelled_discontinuity"`
+	DepartureCandidatesCancelledEOF   int64    `parquet:"departure_candidates_cancelled_eof" json:"departure_candidates_cancelled_eof"`
+	DepartureCandidateUnaccounted     int64    `parquet:"departure_candidate_unaccounted" json:"departure_candidate_unaccounted"`
+	EnterSuppressedNoPending          int64    `parquet:"enter_suppressed_no_pending_transition" json:"enter_suppressed_no_pending_transition"`
+	DeparturesConfirmed               int64    `parquet:"departures_confirmed" json:"departures_confirmed"`
+	PendingTransitionsStarted         int64    `parquet:"pending_transitions_started" json:"pending_transitions_started"`
+	TransitionsConfirmed              int64    `parquet:"transitions_confirmed" json:"transitions_confirmed"`
+	TransitionsCancelledGap           int64    `parquet:"transitions_cancelled_gap" json:"transitions_cancelled_gap"`
+	TransitionsCancelledDiscontinuity int64    `parquet:"transitions_cancelled_discontinuity" json:"transitions_cancelled_discontinuity"`
+	TransitionsUnresolvedEOF          int64    `parquet:"transitions_unresolved_eof" json:"transitions_unresolved_eof"`
+	PendingTransitionUnaccounted      int64    `parquet:"pending_transition_unaccounted" json:"pending_transition_unaccounted"`
+	EventizerVersion                  string   `parquet:"eventizer_version,dict" json:"eventizer_version"`
 }
 
 type ParquetFileStats struct {

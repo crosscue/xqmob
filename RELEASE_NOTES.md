@@ -46,6 +46,8 @@ Non-empty output directories now require explicit `--replace`. Existing dataset 
 
 The tool/producer version remains `0.1.4-rc1`, and the manifest records the replacement option when enabled. See `CHANGELOG.md` for the reconciled release sequence. Benchmark descriptions use configuration names rather than conflicting development version numbers.
 
+Entity details returned by `inspect --json` now use snake_case field names matching the analytical columns (for example, `entity_id` and `observation_count`). Scripts using the previous Go-style keys such as `EntityID` must update their field lookups. Parquet columns and MCP responses are unchanged.
+
 ## Candidate review focus
 
 External reviewers are particularly encouraged to examine:

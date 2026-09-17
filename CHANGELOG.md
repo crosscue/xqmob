@@ -10,6 +10,7 @@ First public open-source release candidate. Adds Apache-2.0 licensing, contribut
 - Partition and rejection-log write, flush and close failures are propagated.
 - Numeric epochs are parsed exactly, preserving nanosecond distinctions and rejecting non-finite/out-of-range timestamps. Analytical millisecond conversion handles pre-epoch and distant dates correctly.
 - Documentation uses one release chronology and describes earlier benchmark configurations without conflicting version numbers.
+- Entity details from `inspect --json` use snake_case field names matching the analytical columns, including `entity_id`, `observation_count` and `ha_coverage_pct`.
 
 Contract versions and mobility thresholds are unchanged. Timestamp corrections can change normalized observations, derived events and IDs for affected inputs; affected datasets should be regenerated from source.
 
