@@ -1,7 +1,10 @@
-xqmob
-bin/
-xqmob-output/
-output*/
+# Generated executables and datasets at the repository root.
+# Keep cmd/xqmob and internal/output eligible for source control.
+/xqmob
+/xqmob.exe
+/bin/
+/xqmob-output/
+/output*/
 *.tmp
 *.heap
 .xqmob-tmp-*/
