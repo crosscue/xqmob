@@ -1,0 +1,31 @@
+name: Feature request
+description: Propose an xqmob enhancement
+title: "[feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Analytical or operational problem
+      description: Describe the problem before proposing the implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected contract/surface
+      options:
+        - Tool/CLI only
+        - mobility-reference eventizer
+        - xqmob-analysis projections
+        - xqmob-mcp interface
+        - Documentation
+        - Unsure
+    validations:
+      required: true

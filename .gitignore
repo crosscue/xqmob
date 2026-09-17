@@ -1,0 +1,8 @@
+xqmob
+bin/
+xqmob-output/
+output*/
+*.tmp
+*.heap
+.xqmob-tmp-*/
+.DS_Store

@@ -1,0 +1,46 @@
+name: Bug report
+description: Report a reproducible xqmob defect
+title: "[bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Please do not report security vulnerabilities here; use SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: xqmob version
+      placeholder: 0.1.4-rc1
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      placeholder: Linux amd64, Windows/WSL2, macOS arm64, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command / configuration
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and logs
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Include only data you are permitted to share.

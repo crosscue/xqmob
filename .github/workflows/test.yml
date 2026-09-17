@@ -1,0 +1,147 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          cache: true
+          cache-dependency-path: go.mod
+      - name: Download dependencies
+        run: go mod download
+      - name: Test
+        run: go test ./...
+      - name: Vet
+        run: go vet ./...
+      - name: Parquet nullable-HA integration
+        run: go test -tags parquetintegration ./internal/output
+      - name: H3 reference integration
+        run: go test -tags h3integration ./internal/geo
+      - name: H3 analytical projection integration
+        run: go test -tags h3projectionintegration ./internal/pipeline
+      - name: CLI release surface
+        run: |
+          go run ./cmd/xqmob --version | grep -q '^xqmob 0.1.4-rc1$'
+          go run ./cmd/xqmob --version | grep -q '^eventizer mobility-reference-v1.2$'
+          go run ./cmd/xqmob --version | grep -q '^analysis xqmob-analysis-v0.2$'
+          go run ./cmd/xqmob --version | grep -q '^mcp xqmob-mcp-v0.2$'
+          go run ./cmd/xqmob eventize --help >/dev/null
+          go run ./cmd/xqmob inspect --help >/dev/null
+          go run ./cmd/xqmob validate --help >/dev/null
+          go run ./cmd/xqmob mcp --help >/dev/null
+      - name: End-to-end standard profile
+        run: |
+          go run ./cmd/xqmob eventize testdata/sample.csv --source ci-synthetic --out "$RUNNER_TEMP/xqmob-standard" --trace-id a | tee "$RUNNER_TEMP/xqmob-standard.out"
+          grep -q '^  details: xqmob inspect --diagnostics ' "$RUNNER_TEMP/xqmob-standard.out"
+          ! grep -q 'temporal_diagnostics:' "$RUNNER_TEMP/xqmob-standard.out"
+          go run ./cmd/xqmob eventize testdata/sample.csv --source ci-synthetic --out "$RUNNER_TEMP/xqmob-standard-verbose" --verbose | grep -q 'temporal_diagnostics:'
+          go run ./cmd/xqmob validate "$RUNNER_TEMP/xqmob-standard/canonical/events.jsonl"
+          test -s "$RUNNER_TEMP/xqmob-standard/analysis/observations.parquet"
+          test -s "$RUNNER_TEMP/xqmob-standard/analysis/events.parquet"
+          test ! -e "$RUNNER_TEMP/xqmob-standard/analysis/tracks.parquet"
+          test -s "$RUNNER_TEMP/xqmob-standard/analysis/segments.parquet"
+          test -s "$RUNNER_TEMP/xqmob-standard/analysis/presence_intervals.parquet"
+          test -s "$RUNNER_TEMP/xqmob-standard/analysis/transitions.parquet"
+          test -s "$RUNNER_TEMP/xqmob-standard/analysis/entities.parquet"
+          grep -q '"parquet_compression": "zstd"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"parquet_row_group_rows": 131072' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"parquet_dictionary_max_bytes": 8388608' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"row_group_max_rows": 131072' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"row_groups": 1' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"ha_policy": "preserve"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"analysis_contract": "xqmob-analysis-v0.2"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"h3_resolution": 11' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q 'H3 never drives eventization' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"analysis_bytes"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"diagnostics"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"performance"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"step_distributions"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"step_dt_s"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"temporal_diagnostics"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"discontinuity_reason_accuracy_dt"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"speed_only_dt_distance"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"speed_only_accuracy_dt_distance"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"speed_only_candidate_classes"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"spatial_diagnostics"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"memory"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"working_set"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"temporary_peak_bytes"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"execution_context"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"presence_end_gap"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"departure_candidates_cancelled_eof"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          grep -q '"traces"' "$RUNNER_TEMP/xqmob-standard/manifest.json"
+          test -s "$(find "$RUNNER_TEMP/xqmob-standard/diagnostics/traces" -name '*.csv' | head -n 1)"
+          head -n 1 "$RUNNER_TEMP/xqmob-standard/rejects.csv" | grep -q 'reason_code'
+          go run ./cmd/xqmob inspect "$RUNNER_TEMP/xqmob-standard" | grep -q 'analysis_contract=xqmob-analysis-v0.2'
+          ! go run ./cmd/xqmob inspect "$RUNNER_TEMP/xqmob-standard" | grep -q 'temporal_diagnostics:'
+          go run ./cmd/xqmob inspect --diagnostics "$RUNNER_TEMP/xqmob-standard" | grep -q 'temporal_diagnostics:'
+          go run ./cmd/xqmob inspect --entity a "$RUNNER_TEMP/xqmob-standard" | grep -q 'entity=a'
+          go run ./cmd/xqmob inspect --json --entity a "$RUNNER_TEMP/xqmob-standard" | grep -q '"entity_id": "a"'
+          go run ./cmd/xqmob eventize testdata/sample.csv --source ci-h3 --out "$RUNNER_TEMP/xqmob-h3-r9" --h3-resolution 9
+          grep -q '"h3_resolution": 9' "$RUNNER_TEMP/xqmob-h3-r9/manifest.json"
+      - name: MCP domain analyst integration
+        env:
+          XQMOB_TEST_DATASET: ${{ runner.temp }}/xqmob-standard
+        run: |
+          go test -tags mcpintegration ./internal/analyst ./internal/mcpserver
+          go build -o "$RUNNER_TEMP/xqmob" ./cmd/xqmob
+          "$RUNNER_TEMP/xqmob" --version | grep -q '^mcp xqmob-mcp-v0.2$'
+          "$RUNNER_TEMP/xqmob" mcp --help >/dev/null
+          # EOF before MCP initialization must not produce application text on stdout.
+          "$RUNNER_TEMP/xqmob" mcp "$RUNNER_TEMP/xqmob-standard" </dev/null >"$RUNNER_TEMP/mcp.stdout" 2>"$RUNNER_TEMP/mcp.stderr" || true
+          test ! -s "$RUNNER_TEMP/mcp.stdout"
+      - name: Parquet bounded row-group materialization
+        run: |
+          go run ./cmd/xqmob eventize testdata/sample.csv --source ci-parquet-tuning --out "$RUNNER_TEMP/xqmob-parquet-tuned" --parquet-row-group-rows 2 --parquet-dictionary-max-mib 1
+          grep -q '"parquet_row_group_rows": 2' "$RUNNER_TEMP/xqmob-parquet-tuned/manifest.json"
+          grep -q '"parquet_dictionary_max_bytes": 1048576' "$RUNNER_TEMP/xqmob-parquet-tuned/manifest.json"
+          grep -q '"row_groups": 5' "$RUNNER_TEMP/xqmob-parquet-tuned/manifest.json"
+          go run ./cmd/xqmob validate "$RUNNER_TEMP/xqmob-parquet-tuned/canonical/events.jsonl"
+      - name: Source-characterization and custom temp workspace
+        run: |
+          mkdir -p "$RUNNER_TEMP/xqmob-native-temp"
+          go run ./cmd/xqmob eventize testdata/source_characterization.csv --source ci-source-characterization --out "$RUNNER_TEMP/xqmob-source-characterization" --temp-dir "$RUNNER_TEMP/xqmob-native-temp" --keep-temp
+          grep -q '"both_missing_speed_only_dt_lt_5s_distance_50_500m"' "$RUNNER_TEMP/xqmob-source-characterization/manifest.json"
+          grep -q '"count": 1' "$RUNNER_TEMP/xqmob-source-characterization/manifest.json"
+          find "$RUNNER_TEMP/xqmob-native-temp" -maxdepth 1 -type d -name '.xqmob-tmp-*' | grep -q .
+      - name: Source-regime reversal and heap profiling
+        run: |
+          go run ./cmd/xqmob eventize testdata/source_regime_reversal.csv --source ci-source-regime --out "$RUNNER_TEMP/xqmob-source-regime"
+          grep -q '"precision_transitions"' "$RUNNER_TEMP/xqmob-source-regime/manifest.json"
+          grep -q '"exact_a_b_a_returns": 1' "$RUNNER_TEMP/xqmob-source-regime/manifest.json"
+          grep -q '"precision_a_b_a_returns": 1' "$RUNNER_TEMP/xqmob-source-regime/manifest.json"
+          mkdir -p "$RUNNER_TEMP/xqmob-heaps"
+          go run ./cmd/xqmob eventize testdata/sample.csv --source ci-heap-profile --out "$RUNNER_TEMP/xqmob-profiled" --partitions 4 --profile-memory "$RUNNER_TEMP/xqmob-heaps"
+          test "$(find "$RUNNER_TEMP/xqmob-heaps" -maxdepth 1 -name '*.heap' | wc -l)" -eq 8
+          grep -q '"profiling_enabled": true' "$RUNNER_TEMP/xqmob-profiled/manifest.json"
+          grep -q '"profiling_forces_gc": true' "$RUNNER_TEMP/xqmob-profiled/manifest.json"
+          test -s "$RUNNER_TEMP/xqmob-heaps/05-after-50pct-partitions.heap"
+      - name: End-to-end preserve HA policy
+        run: |
+          go run ./cmd/xqmob eventize testdata/sample_missing_ha.csv --source ci-missing-ha --out "$RUNNER_TEMP/xqmob-preserve"
+          go run ./cmd/xqmob validate "$RUNNER_TEMP/xqmob-preserve/canonical/events.jsonl"
+          grep -q '"ha_policy": "preserve"' "$RUNNER_TEMP/xqmob-preserve/manifest.json"
+          grep -q '"normalized_without_ha": 1' "$RUNNER_TEMP/xqmob-preserve/manifest.json"
+          test "$(wc -l < "$RUNNER_TEMP/xqmob-preserve/rejects.csv")" -eq 1
+      - name: End-to-end explicit require HA filter
+        run: |
+          go run ./cmd/xqmob eventize testdata/sample_missing_ha.csv --source ci-require-ha --out "$RUNNER_TEMP/xqmob-require" --ha-policy require
+          grep -q '"ha_policy": "require"' "$RUNNER_TEMP/xqmob-require/manifest.json"
+          grep -q '"missing_ha": 1' "$RUNNER_TEMP/xqmob-require/manifest.json"
+      - name: End-to-end full profile
+        run: |
+          go run ./cmd/xqmob eventize testdata/sample.csv --source ci-synthetic --out "$RUNNER_TEMP/xqmob-full" --full
+          test -s "$RUNNER_TEMP/xqmob-full/analysis/tracks.parquet"
+          grep -q '"output_profile": "full"' "$RUNNER_TEMP/xqmob-full/manifest.json"
